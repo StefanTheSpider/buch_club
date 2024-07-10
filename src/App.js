@@ -1,25 +1,115 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from 'react';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const key = process.env.REACT_APP_API_KEY;
+
+export default function Books() {
+    const [search, setSearch] = useState('');
+    const [books, setBooks] = useState([]);
+    const [openIndex, setOpenIndex] = useState(null);
+
+    useEffect(() => {
+        async function getBooks() {
+            if (search.trim() === '') {
+                setBooks([]);
+                return;
+            }
+
+            const controller = new AbortController();
+            const signal = controller.signal;
+
+            try {
+                const res = await fetch(
+                    `https://www.googleapis.com/books/v1/volumes?q=${search}&key=${key}&maxResults=40`,
+                    { signal }
+                );
+
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await res.json();
+
+                if (data.items && Array.isArray(data.items)) {
+                    const books = data.items
+                        .filter(
+                            (item) => item.volumeInfo.imageLinks?.smallThumbnail
+                        )
+                        .map((item) => ({
+                            title: item.volumeInfo.title,
+                            image: item.volumeInfo.imageLinks?.smallThumbnail,
+                            description:
+                                item.volumeInfo.description ||
+                                'No description available',
+                            price: item.saleInfo.retailPrice
+                                ? `${item.saleInfo.retailPrice.amount} ${item.saleInfo.retailPrice.currencyCode}`
+                                : 'Price not available',
+                            pages: item.volumeInfo.pageCount,
+                        }));
+                    setBooks(books);
+                } else {
+                    setBooks([]);
+                }
+            } catch (e) {
+                if (e.name !== 'AbortError') {
+                    console.error(e.message);
+                }
+            }
+
+            return () => controller.abort();
+        }
+
+        getBooks();
+    }, [search]);
+
+    const bookList = books.map((book, index) => (
+        <Book
+            key={index}
+            title={book.title}
+            image={book.image}
+            price={book.price}
+            pages={book.pages}
+            description={book.description}
+            isOpen={index === openIndex}
+            onClick={() => setOpenIndex(openIndex === index ? null : index)}
+        />
+    ));
+
+    return (
+        <>
+            <div className="navigations-leiste">
+                <Logo />
+                <input
+                    className="suche"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search for books"
+                />
+            </div>
+            <div className="books-container">{bookList}</div>
+        </>
+    );
 }
 
-export default App;
+function Logo() {
+    return <img className="logo" src="./gold_logo.png" alt="./gold_logo.png" />;
+}
+
+function Book({ title, image, pages, description, isOpen, onClick, price }) {
+    return (
+        <div className="book-item">
+            {isOpen ? (
+                <div className="show-details">
+                    <p onClick={onClick} className="close-card">
+                        X
+                    </p>
+                    <h4>{title}</h4>
+                    <p>{description}</p>
+                    <p>Seitenanzahl: {pages}</p>
+                    <p>empfohlener Verkaufspreis: {price}</p>
+                </div>
+            ) : (
+                <img onClick={onClick} src={image} alt={title} />
+            )}
+        </div>
+    );
+}

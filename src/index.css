@@ -1,13 +1,63 @@
 body {
+  background-color: lightslategray;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.navigations-leiste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  background-color: #333;
+  padding: 0.5rem 2rem;
+  justify-content: space-between;
+}
+
+.logo {
+  width: 5rem;
+  height: auto;
+}
+
+.suche {
+  width: 15rem;
+  height: 2rem;
+  align-self: center;
+  text-align: center;
+}
+
+.books-container {
+  width: 90%;
+  display: flex;
+  margin: 2rem auto;
+  gap: 4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.book-item {
+  display: flex;
+  flex-direction: column;
+  max-width: 30rem;
+  gap: 2rem;
+}
+
+.book-item img {
+  width: 10rem;
+  height: auto;
+}
+
+.show-details {
+  position: relative;
+  height: 100%;
+  padding: 1rem;
+  outline: 1px solid black;
+  background-color: #fff;
+}
+
+.close-card {
+  padding: 0.3rem;
+  outline: 1px solid black;
+  color: red;
+  position: absolute;
+  right: 0.5rem;
+  top: -0.5rem;
 }
