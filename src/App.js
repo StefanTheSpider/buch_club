@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 
 const key = process.env.REACT_APP_API_KEY;
+
 export default function Books() {
     const [search, setSearch] = useState('');
     const [books, setBooks] = useState([]);
     const [openIndex, setOpenIndex] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [empty, setEmpty] = useState(true);
 
     useEffect(() => {
         async function getBooks() {
@@ -15,6 +18,8 @@ export default function Books() {
 
             const controller = new AbortController();
             const signal = controller.signal;
+            setLoading(true);
+            setEmpty(false);
 
             try {
                 const res = await fetch(
@@ -33,6 +38,7 @@ export default function Books() {
                         .filter(
                             (item) => item.volumeInfo.imageLinks?.smallThumbnail
                         )
+                        .filter((item) => item.volumeInfo.title)
                         .map((item) => ({
                             title: item.volumeInfo.title,
                             image: item.volumeInfo.imageLinks?.smallThumbnail,
@@ -52,6 +58,8 @@ export default function Books() {
                 if (e.name !== 'AbortError') {
                     console.error(e.message);
                 }
+            } finally {
+                setLoading(false);
             }
 
             return () => controller.abort();
@@ -84,7 +92,12 @@ export default function Books() {
                     placeholder="Search for books"
                 />
             </div>
-            <div className="books-container">{bookList}</div>
+            {empty && <Greatings />}
+            {loading ? (
+                <Loader />
+            ) : (
+                <div className="books-container">{bookList}</div>
+            )}
         </>
     );
 }
@@ -107,8 +120,25 @@ function Book({ title, image, pages, description, isOpen, onClick, price }) {
                     <p>empfohlener Verkaufspreis: {price}</p>
                 </div>
             ) : (
-                <img onClick={onClick} src={image} alt={title} />
+                <div className="book-title-img">
+                    <img onClick={onClick} src={image} alt={title} />
+                    <h4>{title}</h4>
+                    <hr />
+                </div>
             )}
+        </div>
+    );
+}
+
+function Loader() {
+    return <div className="loader">Loading...</div>;
+}
+
+function Greatings() {
+    return (
+        <div className="gratings">
+            <h1>Welcome to our Bookclub</h1>
+            <p>Discover our wide selection of books at great prices.</p>
         </div>
     );
 }
